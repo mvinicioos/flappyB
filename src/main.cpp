@@ -40,6 +40,8 @@
 #include "matrices.h"
 
 
+#include "colisoes.h"
+#include "personagem.h"
 //***** MODIFICAÇÃO PARA O TRABALHO FINAL ****/
 //Constantes do cenario
 #define CENARIO_LIMITE_INFERIOR -10
@@ -94,8 +96,7 @@ float personagemTamanhoZ(glm::mat4 model);
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
-struct SceneObject
-{
+struct SceneObject{
     const char*  name;        // Nome do objeto
     void*        first_index; // Índice do primeiro vértice dentro do vetor indices[] definido em BuildTriangles()
     int          num_indices; // Número de índices do objeto dentro do vetor indices[] definido em BuildTriangles()
@@ -273,13 +274,11 @@ int main(){
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window)){
 
-
         //***** MODIFICAÇÃO PARA O TRABALHO FINAL ****/
         if(flagTeclaEspaco == 0){
             //Jogador ainda não solicitou um salto
             //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
-            if((CENARIO_LIMITE_INFERIOR + personagemTamanhoY(model)) < personagemCoordY){
-
+            if(cenarioColisaoInferior(CENARIO_LIMITE_INFERIOR, personagemTamanhoY(model), personagemCoordY)){
                 personagemCoordY -= PERSONAGEM_DISTANCIA_QUEDA;
             }
         }else{
@@ -287,7 +286,7 @@ int main(){
             //O personagem vai percorrer uma distancia de 'PERSONAGEM_DISTANCIA_SALTO'
             //por iteração em um total de 'PERSONAGEM_TEMPO_SALTO' iterações
             if(personagemTempoSaltoInc < PERSONAGEM_TEMPO_SALTO){
-                personagemCoordY += PERSONAGEM_DISTANCIA_SALTO;
+                personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);      
                 personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;
             }else{
                 flagTeclaEspaco = 0;
