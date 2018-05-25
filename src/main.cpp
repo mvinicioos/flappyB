@@ -303,7 +303,6 @@ int main(){
                 // *exatamente iguais* a suas coordenadas no espaço do modelo
                 // (Model Coordinates).
 
-                //***** MODIFICAÇÃO PARA O TRABALHO FINAL ****/
                 model = Matrix_Identity()
                         * Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ)
                         * Matrix_Scale(0.5f,0.5f,0.5f);
@@ -360,25 +359,9 @@ int main(){
 
 
             // Pedimos para OpenGL desenhar linhas com largura de 4 pixels.
-            glLineWidth(0.0f);
+            glLineWidth(2.0f);
 
-            // Pedimos para a GPU rasterizar os vértices dos eixos XYZ
-            // apontados pelo VAO como linhas. Veja a definição de
-            // g_VirtualScene["axes"] dentro da função BuildTriangles(), e veja
-            // a documentação da função glDrawElements() em
-            // http://docs.gl/gl3/glDrawElements.
-            //
-            // Importante: estes eixos serão desenhamos com a matriz "model"
-            // definida acima, e portanto sofrerão as mesmas transformações
-            // geométricas que o cubo. Isto é, estes eixos estarão
-            // representando o sistema de coordenadas do modelo (e não o global)!
-            glDrawElements(
-                g_VirtualScene["axes"].rendering_mode,
-                g_VirtualScene["axes"].num_indices,
-                GL_UNSIGNED_INT,
-                (void*)g_VirtualScene["axes"].first_index
-            );
-
+            
             // Informamos para a placa de vídeo (GPU) que a variável booleana
             // "render_as_black" deve ser colocada como "true". Veja o arquivo
             // "shader_vertex.glsl".
@@ -396,67 +379,8 @@ int main(){
                 (void*)g_VirtualScene["cube_edges"].first_index
             );
 
-            // Desenhamos um ponto de tamanho 15 pixels em cima do terceiro vértice
-            // do terceiro cubo. Este vértice tem coordenada de modelo igual à
-            // (0.5, 0.5, 0.5, 1.0).
-            if ( i == 3 )
-            {
-                glPointSize(15.0f);
-                glDrawArrays(GL_POINTS, 3, 1);
-            }
         }
-
-        // Agora queremos desenhar os eixos XYZ de coordenadas GLOBAIS.
-        // Para tanto, colocamos a matriz de modelagem igual à identidade.
-        // Veja slide 147 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
-        glm::mat4 model = Matrix_Identity();
-
-        // Enviamos a nova matriz "model" para a placa de vídeo (GPU). Veja o
-        // arquivo "shader_vertex.glsl".
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-
-        // Pedimos para OpenGL desenhar linhas com largura de 10 pixels.
-        glLineWidth(10.0f);
-
-        // Informamos para a placa de vídeo (GPU) que a variável booleana
-        // "render_as_black" deve ser colocada como "false". Veja o arquivo
-        // "shader_vertex.glsl".
-        glUniform1i(render_as_black_uniform, false);
-
-        // Pedimos para a GPU rasterizar os vértices dos eixos XYZ
-        // apontados pelo VAO como linhas. Veja a definição de
-        // g_VirtualScene["axes"] dentro da função BuildTriangles(), e veja
-        // a documentação da função glDrawElements() em
-        // http://docs.gl/gl3/glDrawElements.
-        glDrawElements(
-            g_VirtualScene["axes"].rendering_mode,
-            g_VirtualScene["axes"].num_indices,
-            GL_UNSIGNED_INT,
-            (void*)g_VirtualScene["axes"].first_index
-        );
-
-        // "Desligamos" o VAO, evitando assim que operações posteriores venham a
-        // alterar o mesmo. Isso evita bugs.
-        glBindVertexArray(0);
-
-        // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
-        // passamos por todos os sistemas de coordenadas armazenados nas
-        // matrizes the_model, the_view, e the_projection; e escrevemos na tela
-        // as matrizes e pontos resultantes dessas transformações.
-        glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
-        TextRendering_ShowModelViewProjection(window, the_projection, the_view, the_model, p_model);
-
-        // Imprimimos na tela os ângulos de Euler que controlam a rotação do
-        // terceiro cubo.
-        TextRendering_ShowEulerAngles(window);
-
-        // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
-        TextRendering_ShowProjection(window);
-
-        // Imprimimos na tela informação sobre o número de quadros renderizados
-        // por segundo (frames per second).
-        TextRendering_ShowFramesPerSecond(window);
-
+        
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
         // seria possível ver artefatos conhecidos como "screen tearing". A
@@ -480,8 +404,7 @@ int main(){
 }
 
 // Constrói triângulos para futura renderização
-GLuint BuildTriangles()
-{
+GLuint BuildTriangles(){
     // Primeiro, definimos os atributos de cada vértice.
 
     // A posição de cada vértice é definida por coeficientes em um sistema de
