@@ -1,0 +1,62 @@
+-----------------------------------------------------------------------------------
+Personagem:
+    Movimentação
+        > Movimenta apenas no eixo Y
+        > O Personagem está sob ação de uma gravidade (main.cpp/CENARIO_GRAVIDADE). Portanto, possui uma queda constante
+        > Uma flag (variaveis_globais.h/flagTeclaEspaco) verifica quando o espaço foi pressionado,
+        isso permite que o personagem seja incrementado dentro do laço principal do jogo enquanto a flag ainda estiver ativa.
+        O personagem vai percorrer uma distancia de (main.cpp/PERSONAGEM_DISTANCIA_SALTO) por iteração em um total de 
+        (main.cpp/PERSONAGEM_TEMPO_SALTO) iterações. Garante o movimento suave do personagem em "paralelo" aos demais objetos.
+        while(){
+            (...)
+                SE espaço_pressionado ENTAO
+                    SE personagem_ainda_pode_cair ENTAO
+                        personagem_cai()
+                SE NAO
+                    SE tempo_salto < tempo_total_salto ENTAO
+                        SE personagem_ainda_pode_subir ENTAO
+                            personagem_sobe()
+                    SE NAO
+                        desativa_flag_espaço()
+            (...)
+        }
+        > Toda vez que a flagTeclaEspaco é ativada, o tempo_salto é zerado, assim é garantido o salto duplo,
+        triplo etc.
+-----------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------
+Blocos/Obstáculos
+    > Objeto => obstáculo do jogo
+
+    Tamanho e Variação:        
+        > Um bloco define um objeto. Uma cópia dele é colocada em sua parte superior, portanto:
+        objeto_inferior e objeto_superior compartilham a mesma posição objeto_posicao_x
+        > Os objetos objeto_inferior e o objeto_superior nunca se tocam, deixando assim um vão para
+        o personagem atravessá-lo. 
+        > Definição do vão:
+            Duas variáveis variacao_objeto_superior e variacao_objeto_inferior controlam em quanto o objeto vai ser somado ou subtraido
+            porém, quem define a soma ou a subtracao é a variavel nivel_vao para saber se vai ser em cima ou baixo
+            nivel_vao = sorteio(1,2)
+            variacao_objeto = sorteio(intervalo)
+
+            SE nivel_vao é par ENTAO
+                variacao_objeto_superior = -variacao_objeto
+                variacao_objeto_inferior = variacao_objeto
+            SE NAO
+                variacao_objeto_superior = variacao_objeto
+                variacao_objeto_inferior = -variacao_objeto
+            
+            objeto_superior += variacao_objeto_superior
+            objeto_inferior += variacao_objeto_inferior
+
+    Movimentação:
+        > Um objeto se movimenta apenas no eixo X
+        > Uma variável X objeto_posicao_x é compartilhada entre um conjunto de dois objetos apenas, 
+        objeto_inferior e objeto_superior.
+        > Essa variável é decrementada a iteração do laço principal do jogo
+        > Quando essa variável atinge um limite estabelicido no cenário, ela é zerada, assim o objeto 
+        passa a estar no inicio do cenário novamente.
+    
+-----------------------------------------------------------------------------------

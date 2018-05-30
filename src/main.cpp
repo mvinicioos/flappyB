@@ -41,14 +41,25 @@
 
 
 //Constantes do cenario
-#define CENARIO_LIMITE_INFERIOR -10
-#define CENARIO_LIMITE_SUPERIOR 10
+#define CENARIO_LIMITE_INFERIOR 0
+#define CENARIO_LIMITE_SUPERIOR 5
+#define CENARIO_LIMITE_ESQUERDA -10
+#define CENARIO_TAMANHO_LINHAS 5.0
+#define CENARIO_GRAVIDADE 0.04
+
 //Constantes do personagem
 //Distancia percorridas por iteracao
 #define PERSONAGEM_DISTANCIA_SALTO 0.1
-#define PERSONAGEM_DISTANCIA_QUEDA 0.04
 #define PERSONAGEM_TEMPO_SALTO 10
 #define PERSONAGEM_INCREMENTADOR_SALTO 1
+#define PERSONAGEM_TAMANHO_Y 0.25
+#define PERSONAGEM_TAMANHO_X 0.25
+#define PERSONAGEM_TAMANHO_Z 0.25
+
+
+//Constantes dos objetos
+#define OBSTACULO_TAMANHO_Y 2
+
 
 
 
@@ -68,6 +79,10 @@ struct SceneObject{
     GLenum       rendering_mode; // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
 };
 
+
+
+using namespace std;
+
 // A cena virtual é uma lista de objetos nomeados, guardados em um dicionário
 // (map).  Veja dentro da função BuildTriangles() como que são incluídos
 // objetos dentro da variável g_VirtualScene, e veja na função main() como
@@ -75,9 +90,10 @@ struct SceneObject{
 std::map<const char*, SceneObject> g_VirtualScene;
 
 
-using namespace std;
-
 int main(){
+
+    float obstaculoAMovimentaX = 2.0;
+
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
     int success = glfwInit();
@@ -194,25 +210,39 @@ int main(){
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window)){
-
-        //***** MODIFICAÇÃO PARA O TRABALHO FINAL ****/
+        
         if(flagTeclaEspaco == 0){
             //Jogador ainda não solicitou um salto
             //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
-            if(cenarioColisaoInferior(CENARIO_LIMITE_INFERIOR, personagemTamanhoY(model), personagemCoordY)){
-                personagemCoordY -= PERSONAGEM_DISTANCIA_QUEDA;
+            if(cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, 0.25f) < personagemCoordY){
+                personagemCoordY -= CENARIO_GRAVIDADE;
             }
         }else{
             //O jogador solicitou um salto
             //O personagem vai percorrer uma distancia de 'PERSONAGEM_DISTANCIA_SALTO'
             //por iteração em um total de 'PERSONAGEM_TEMPO_SALTO' iterações
             if(personagemTempoSaltoInc < PERSONAGEM_TEMPO_SALTO){
-                personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);      
-                personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;
+                personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;                    
+                
+                //Verifica se não ultrapssou o limite superior do cenário
+                if(cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, 0.25f) > personagemCoordY){
+                    personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);                       
+                }
             }else{
                 flagTeclaEspaco = 0;
             }
         }
+
+        //Obstaculos
+        if(CENARIO_LIMITE_ESQUERDA < obstaculoAMovimentaX){
+            if(obstaculoAMovimentaX > -7.0){
+                obstaculoAMovimentaX -= 0.1;
+            }else{
+                obstaculoAMovimentaX = 10.0f;
+            }
+        }
+        //Apenas a movimentação do personagem
+
 
 
         // Aqui executamos as operações de renderização
@@ -250,7 +280,7 @@ int main(){
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 165-175 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
         glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l    = glm::vec4(personagemCoordX,personagemCoordY,personagemCoordZ,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        glm::vec4 camera_lookat_l    = glm::vec4(personagemCoordX,personagemCoordY/2 ,personagemCoordZ,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
@@ -294,7 +324,7 @@ int main(){
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
         // Vamos desenhar 3 instâncias (cópias) do cubo
-        for (int i = 1; i <= 3; ++i){
+        for (int i = 1; i <= 4; ++i){
 
             if (i == 1){
                 // A primeira cópia do cubo não sofrerá nenhuma transformação
@@ -302,31 +332,30 @@ int main(){
                 // suas coordenadas no espaço global (World Coordinates) serão
                 // *exatamente iguais* a suas coordenadas no espaço do modelo
                 // (Model Coordinates).
-
                 model = Matrix_Identity()
                         * Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ)
-                        * Matrix_Scale(0.5f,0.5f,0.5f);
-
+                        * Matrix_Scale(PERSONAGEM_TAMANHO_X,PERSONAGEM_TAMANHO_Y,PERSONAGEM_TAMANHO_Z);
 
             }else if ( i == 2 ){
                 // A segunda cópia do cubo sofrerá um escalamento não-uniforme,
                 // seguido de uma rotação no eixo (1,1,1), e uma translação em Z (nessa ordem!).
-                model = Matrix_Translate(0.0f, 0.0f, -2.0f) // TERCEIRO translação
-                      * Matrix_Rotate(3.141592f / 8.0f, glm::vec4(1.0f,1.0f,1.0f,0.0f)) // SEGUNDO rotação
-                      * Matrix_Scale(2.0f, 0.5f, 0.5f); // PRIMEIRO escala
+                model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR, 0.0f) // TERCEIRO translação
+                      * Matrix_Scale(10.0f, 0.0f, 10.0f); // PRIMEIRO escala
             }else if ( i == 3 ){
                 // A terceira cópia do cubo sofrerá rotações em X,Y e Z (nessa
                 // ordem) seguindo o sistema de ângulos de Euler, e após uma
                 // translação em X. Veja slide 65 do documento
                 // "Aula_07_Transformacoes_Geometricas_3D.pdf".
-                model = Matrix_Translate(-2.0f, 0.0f, 0.0f); // QUARTO translação
+                model =   Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, OBSTACULO_TAMANHO_Y), 0.0f) // QUARTO translação
+                        * Matrix_Scale(1.0f, OBSTACULO_TAMANHO_Y, 10.0f);
 
 
-                // Armazenamos as matrizes model, view, e projection do terceiro cubo
-                // para mostrar elas na tela através da função TextRendering_ShowModelViewProjection().
-                the_model = model;
-                the_projection = projection;
-                the_view = view;
+            }else if(i==4){
+                // A segunda cópia do cubo sofrerá um escalamento não-uniforme,
+                // seguido de uma rotação no eixo (1,1,1), e uma translação em Z (nessa ordem!).
+                model = Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y), 0.0f) // TERCEIRO translação
+                      * Matrix_Scale(1.0f, OBSTACULO_TAMANHO_Y, 10.0f); // PRIMEIRO escala
+
             }
 
             // Enviamos a matriz "model" para a placa de vídeo (GPU). Veja o
@@ -359,7 +388,7 @@ int main(){
 
 
             // Pedimos para OpenGL desenhar linhas com largura de 4 pixels.
-            glLineWidth(2.0f);
+            glLineWidth(CENARIO_TAMANHO_LINHAS);
 
             
             // Informamos para a placa de vídeo (GPU) que a variável booleana
@@ -591,14 +620,6 @@ GLuint BuildTriangles(){
     // Adicionamos o objeto criado acima na nossa cena virtual (g_VirtualScene).
     g_VirtualScene["cube_edges"] = cube_edges;
 
-    // Criamos um terceiro objeto virtual (SceneObject) que se refere aos eixos XYZ.
-    SceneObject axes;
-    axes.name           = "Eixos XYZ";
-    axes.first_index    = (void*)(60*sizeof(GLuint)); // Primeiro índice está em indices[60]
-    axes.num_indices    = 6; // Último índice está em indices[65]; total de 6 índices.
-    axes.rendering_mode = GL_LINES; // Índices correspondem ao tipo de rasterização GL_LINES.
-    g_VirtualScene["axes"] = axes;
-
     // Criamos um buffer OpenGL para armazenar os índices acima
     GLuint indices_id;
     glGenBuffers(1, &indices_id);
@@ -627,7 +648,6 @@ GLuint BuildTriangles(){
     // os triângulos definidos acima. Veja a chamada glDrawElements() em main().
     return vertex_array_object_id;
 }
-
 
 
 

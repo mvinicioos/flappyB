@@ -23,19 +23,36 @@ float g_CameraDistance = 2.5f; // Distância da câmera para a origem
 bool g_UsePerspectiveProjection = true;
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
-//Variáveis globais de referência para orientação do objeto principal. Partindo da origem
+
+//-----------------------------------------------------------------------[PERSONAGEM]
+//Variáveis globais de referência para orientação do personagem principal.
 float personagemCoordX = 0;
-float personagemCoordY = 0;
+float personagemCoordY = 5;
 float personagemCoordZ = 0;
 //Flags
 int  flagTeclaEspaco   = 0;
 //controladores
 float personagemTempoSaltoInc = 0;
 
+//------------------------------------------------------------------------[OBSTÁCULOS]
+//Primeiro objeto
+float obstaculosAcoordX = 5;
+float obstaculosAcoordY = 0;
+float obstaculosAcoordZ = 0;
+
+//Segundo Objeto
+float obstaculosBcoordX = 10;
+float obstaculosBcoordY = 0;
+float obstaculosBcoordZ = 0;
+
+
+
 // Cada cópia do cubo possui uma matriz de modelagem independente,
 // já que cada cópia estará em uma posição (rotação, escala, ...)
 // diferente em relação ao espaço global (World Coordinates). Veja
 // slide 148 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
 glm::mat4 model;
+
+
 
 

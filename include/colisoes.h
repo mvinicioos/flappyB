@@ -1,14 +1,14 @@
 #include <iostream>
 
-
-//Verifica colisão com o piso do cenario
-bool cenarioColisaoInferior(int piso, float tamanhoObjeto, float coordenadaAtual){
-    bool colisao = false;
-
-    if((piso + tamanhoObjeto) <= coordenadaAtual){
-        colisao = true;
-    }
-
-    return colisao;
-
+/**
+ * Posiciona Objeto no limite inferior do cenário
+*/
+float cenarioPosicionaObjetoInf(float limiteInferior, float tamanhoObjeto){
+    return limiteInferior + tamanhoObjeto/2;
+}
+/**
+ * Posiciona o objeto no limite superior do cenário
+*/
+float cenarioPosicionaObjetoSup(float limiteSuperior, float tamanhoObjeto){
+    return limiteSuperior - tamanhoObjeto/2;
 }
