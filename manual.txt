@@ -25,11 +25,8 @@ Personagem:
 
     Colisões:
         Obstáculos:
-            > Colisão é verificada antes de qualquer movimento
-            > Dado que um objeto é um conjunto de coordenadas, uma Colisão acontece quando um ponto Y do personagem
-            está no intervalo de pontos Y do obstáculo. Da mesma forma para os pontos X e Z.
-                *****Quando o tamanho do obstáculo está fixado em 1 não acontece Colisões.
-            
+            Ocorre quando uma das extremidades do personagem está no intervalo de coordenadas 
+            do obstáculo que vai desde o lado esquerda até o direito (X) ou do mais baixo até o mais alto Y
         Chão:
 
         Ceu ?

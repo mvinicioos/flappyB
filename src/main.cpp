@@ -59,9 +59,12 @@
 
 
 //Constantes dos objetos
-#define OBSTACULO_TAMANHO_Y 2.0f
+#define OBSTACULO_TAMANHO_Y 1.5f
 #define OBSTACULO_TAMANHO_X 0.5f
-#define OBSTACULO_TAMANHO_Z 3.0f
+#define OBSTACULO_TAMANHO_Z 3.0f    
+#define OBSTACULO_DISTANCIA 0.05f   //Distância que anda por iteração
+#define OBSTACULO_TEMPO_FINAL 7     //Do cenário
+#define OBSTACULO_TEMPO_INICIAL 10  //Entrada no cenário
 
 
 
@@ -95,7 +98,7 @@ std::map<const char*, SceneObject> g_VirtualScene;
 
 int main(){
 
-    float obstaculoAMovimentaX = 2.0;
+    float obstaculoAMovimentaX = 10.0;
 
     //OBSTÁCULOS
     int obstaculoVariacaoSup = 0;
@@ -225,6 +228,9 @@ int main(){
             //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
             if(cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, PERSONAGEM_TAMANHO_Y) < personagemCoordY){
                 personagemCoordY -= CENARIO_GRAVIDADE;
+            }else{
+                //COLISÃO COM O CHÃO
+                
             }
         }else{
             //O jogador solicitou um salto
@@ -234,7 +240,7 @@ int main(){
                 personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;                    
                 
                 //Verifica se não ultrapssou o limite superior do cenário
-                if(cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, 0.25f) > personagemCoordY){
+                if(cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, PERSONAGEM_TAMANHO_Y) > personagemCoordY){
                     personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);                       
                 }
             }else{
@@ -244,21 +250,27 @@ int main(){
 
         //----------Obstaculos
         if(CENARIO_LIMITE_ESQUERDA < obstaculoAMovimentaX){
-            if(obstaculoAMovimentaX > -7.0){
-                obstaculoAMovimentaX -= 0.1;
+            if(obstaculoAMovimentaX > (-OBSTACULO_TEMPO_FINAL)){
+                obstaculoAMovimentaX -= OBSTACULO_DISTANCIA;
             }else{
-                obstaculoAMovimentaX = 10.0f;
+                obstaculoAMovimentaX = OBSTACULO_TEMPO_INICIAL;
                 //Gera a variação dos obstáculos
                 obstaculosVariacao(&obstaculoVariacaoInf, &obstaculoVariacaoSup, 3);
             }
-        }
-        
-        
+        }        
         //----------------------
         
-        //Apenas a movimentação do personagem
+        //Colisão QUE BAGULHO MAIS FEIO MDSSSSSSSSS
+        if( (cenarioColisaoPersonagemObstaculo(personagemCoordX, PERSONAGEM_TAMANHO_X, obstaculoAMovimentaX, OBSTACULO_TAMANHO_X))
+         &&
+         ((cenarioColisaoPersonagemObstaculo(personagemCoordY, PERSONAGEM_TAMANHO_Y, cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoInf), OBSTACULO_TAMANHO_Y))
+         ||
+         (cenarioColisaoPersonagemObstaculo(personagemCoordY, PERSONAGEM_TAMANHO_Y, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoSup), OBSTACULO_TAMANHO_Y)))){
 
-
+                  
+                  return 0;
+            
+        }
 
         // Aqui executamos as operações de renderização
 

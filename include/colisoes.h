@@ -13,3 +13,21 @@ float cenarioPosicionaObjetoInf(float limiteInferior, float tamanhoObjeto){
 float cenarioPosicionaObjetoSup(float limiteSuperior, float tamanhoObjeto){
     return limiteSuperior - tamanhoObjeto/2;
 }
+
+bool cenarioColisaoPersonagemObstaculo(float personagemLocalizacao, float personagemTamanho, float obstaculoLocalizacao, float obstaculoTamanho){
+    bool colisao = false;
+
+    float personagemInicio     = personagemLocalizacao - (personagemTamanho / 2);
+    float personagemFinal      = personagemLocalizacao + (personagemTamanho / 2);
+
+    float obstaculoIntervaloInicial     = obstaculoLocalizacao - (obstaculoTamanho/2);
+    float obstaculoIntervaloFinal       = obstaculoLocalizacao + (obstaculoTamanho/2);
+
+    if((personagemFinal >= obstaculoIntervaloInicial && personagemFinal <= obstaculoIntervaloFinal) ||
+      (personagemInicio >= obstaculoIntervaloInicial && personagemInicio <= obstaculoIntervaloFinal)){
+        colisao = true;
+    }
+    
+
+    return colisao;    
+}
