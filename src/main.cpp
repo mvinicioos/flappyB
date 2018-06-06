@@ -31,6 +31,7 @@
 #include "matrices.h"
 
 //Headers criados
+#include "obstaculos.h"
 #include "outros.h"
 #include "variaveis_globais.h"
 #include "colisoes.h"
@@ -58,7 +59,9 @@
 
 
 //Constantes dos objetos
-#define OBSTACULO_TAMANHO_Y 2
+#define OBSTACULO_TAMANHO_Y 2.0f
+#define OBSTACULO_TAMANHO_X 0.5f
+#define OBSTACULO_TAMANHO_Z 3.0f
 
 
 
@@ -93,6 +96,12 @@ std::map<const char*, SceneObject> g_VirtualScene;
 int main(){
 
     float obstaculoAMovimentaX = 2.0;
+
+    //OBSTÁCULOS
+    int obstaculoVariacaoSup = 0;
+    int obstaculoVariacaoInf = 0;
+    
+
 
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
@@ -214,7 +223,7 @@ int main(){
         if(flagTeclaEspaco == 0){
             //Jogador ainda não solicitou um salto
             //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
-            if(cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, 0.25f) < personagemCoordY){
+            if(cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, PERSONAGEM_TAMANHO_Y) < personagemCoordY){
                 personagemCoordY -= CENARIO_GRAVIDADE;
             }
         }else{
@@ -233,14 +242,20 @@ int main(){
             }
         }
 
-        //Obstaculos
+        //----------Obstaculos
         if(CENARIO_LIMITE_ESQUERDA < obstaculoAMovimentaX){
             if(obstaculoAMovimentaX > -7.0){
                 obstaculoAMovimentaX -= 0.1;
             }else{
                 obstaculoAMovimentaX = 10.0f;
+                //Gera a variação dos obstáculos
+                obstaculosVariacao(&obstaculoVariacaoInf, &obstaculoVariacaoSup, 3);
             }
         }
+        
+        
+        //----------------------
+        
         //Apenas a movimentação do personagem
 
 
@@ -253,7 +268,7 @@ int main(){
         // Conversaremos sobre sistemas de cores nas aulas de Modelos de Iluminação.
         //
         //           R     G     B     A
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         // "Pintamos" todos os pixels do framebuffer com a cor definida acima,
         // e também resetamos todos os pixels do Z-buffer (depth buffer).
@@ -327,34 +342,25 @@ int main(){
         for (int i = 1; i <= 4; ++i){
 
             if (i == 1){
-                // A primeira cópia do cubo não sofrerá nenhuma transformação
-                // de modelagem. Portanto, sua matriz "model" é a identidade, e
-                // suas coordenadas no espaço global (World Coordinates) serão
-                // *exatamente iguais* a suas coordenadas no espaço do modelo
-                // (Model Coordinates).
+                // Personagem
                 model = Matrix_Identity()
                         * Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ)
                         * Matrix_Scale(PERSONAGEM_TAMANHO_X,PERSONAGEM_TAMANHO_Y,PERSONAGEM_TAMANHO_Z);
 
             }else if ( i == 2 ){
-                // A segunda cópia do cubo sofrerá um escalamento não-uniforme,
-                // seguido de uma rotação no eixo (1,1,1), e uma translação em Z (nessa ordem!).
+                //Chão
                 model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR, 0.0f) // TERCEIRO translação
-                      * Matrix_Scale(10.0f, 0.0f, 10.0f); // PRIMEIRO escala
+                      * Matrix_Scale(20.0f, 0.0f, 3.0f); // PRIMEIRO escala
             }else if ( i == 3 ){
-                // A terceira cópia do cubo sofrerá rotações em X,Y e Z (nessa
-                // ordem) seguindo o sistema de ângulos de Euler, e após uma
-                // translação em X. Veja slide 65 do documento
-                // "Aula_07_Transformacoes_Geometricas_3D.pdf".
-                model =   Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, OBSTACULO_TAMANHO_Y), 0.0f) // QUARTO translação
-                        * Matrix_Scale(1.0f, OBSTACULO_TAMANHO_Y, 10.0f);
+                //Obstáculo inferior
+                model =   Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoInf), 0.0f) // QUARTO translação
+                        * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoInf, OBSTACULO_TAMANHO_Z);
 
 
             }else if(i==4){
-                // A segunda cópia do cubo sofrerá um escalamento não-uniforme,
-                // seguido de uma rotação no eixo (1,1,1), e uma translação em Z (nessa ordem!).
-                model = Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y), 0.0f) // TERCEIRO translação
-                      * Matrix_Scale(1.0f, OBSTACULO_TAMANHO_Y, 10.0f); // PRIMEIRO escala
+                //Obstáculo superior
+                model = Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoSup), 0.0f) // TERCEIRO translação
+                      * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoSup, OBSTACULO_TAMANHO_Z); // PRIMEIRO escala
 
             }
 
