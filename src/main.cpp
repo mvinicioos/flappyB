@@ -103,6 +103,12 @@ int main(){
     //OBSTÁCULOS
     int obstaculoVariacaoSup = 0;
     int obstaculoVariacaoInf = 0;
+
+    //Jogador
+    int pontuacao = 0;
+    string pontuacaoBuffer;
+
+    
     
 
 
@@ -202,6 +208,7 @@ int main(){
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
+    
 
     // Buscamos o endereço das variáveis definidas dentro do Vertex Shader.
     // Utilizaremos estas variáveis para enviar dados para a placa de vídeo
@@ -222,7 +229,6 @@ int main(){
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window)){
-        
         if(flagTeclaEspaco == 0){
             //Jogador ainda não solicitou um salto
             //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
@@ -268,9 +274,13 @@ int main(){
          (cenarioColisaoPersonagemObstaculo(personagemCoordY, PERSONAGEM_TAMANHO_Y, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoSup), OBSTACULO_TAMANHO_Y)))){
 
                   
-                  return 0;
+            return 0;
             
+        }else if(cenarioColisaoPersonagemObstaculo(personagemCoordX, PERSONAGEM_TAMANHO_X, obstaculoAMovimentaX, OBSTACULO_TAMANHO_X)){
+                
+            pontuacao++;
         }
+        
 
         // Aqui executamos as operações de renderização
 
@@ -280,7 +290,7 @@ int main(){
         // Conversaremos sobre sistemas de cores nas aulas de Modelos de Iluminação.
         //
         //           R     G     B     A
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         // "Pintamos" todos os pixels do framebuffer com a cor definida acima,
         // e também resetamos todos os pixels do Z-buffer (depth buffer).
@@ -427,6 +437,8 @@ int main(){
             );
 
         }
+
+        TextRendering_PrintString(window, "Pontos: "+std::to_string(pontuacao), -0.9, -0.9, 1.5);
         
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -441,6 +453,7 @@ int main(){
         // definidas anteriormente usando glfwSet*Callback() serão chamadas
         // pela biblioteca GLFW.
         glfwPollEvents();
+        
     }
 
     // Finalizamos o uso dos recursos do sistema operacional
