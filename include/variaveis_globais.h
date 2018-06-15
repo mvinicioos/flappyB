@@ -62,4 +62,5 @@ float personagemCoordZ = 0;
 int  flagTeclaEspaco   = 0;
 //controladores
 float personagemTempoSaltoInc = 0;
-
+//-----------------------------------------------------------------------[OBSTACULOS]
+GLuint vertex_array_object_id;
