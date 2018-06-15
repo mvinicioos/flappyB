@@ -1,3 +1,5 @@
+
+
 //Funções de callback
 // Definição da função que será chamada sempre que a janela do sistema
 // operacional for redimensionada, por consequência alterando o tamanho do
