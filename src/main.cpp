@@ -55,8 +55,7 @@
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
-struct ObjModel
-{
+struct ObjModel{
     tinyobj::attrib_t                 attrib;
     std::vector<tinyobj::shape_t>     shapes;
     std::vector<tinyobj::material_t>  materials;
@@ -99,20 +98,9 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // 
 void PrintObjModelInfo(ObjModel*); // Função para debugging
 
 
-
-// Funções callback para comunicação com o sistema operacional e interação do
-// usuário. Veja mais comentários nas definições das mesmas, abaixo.
-void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
-void ErrorCallback(int error, const char* description);
-void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
-void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
-struct SceneObject
-{
+struct SceneObject{
     std::string  name;        // Nome do objeto
     void*        first_index; // Índice do primeiro vértice dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
     int          num_indices; // Número de índices do objeto dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
@@ -136,8 +124,7 @@ std::stack<glm::mat4>  g_MatrixStack;
 
 
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]){
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
     int success = glfwInit();
@@ -353,7 +340,24 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, PLANE);
         DrawVirtualObject("plane");
 
-        
+        // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
+        // passamos por todos os sistemas de coordenadas armazenados nas
+        // matrizes the_model, the_view, e the_projection; e escrevemos na tela
+        // as matrizes e pontos resultantes dessas transformações.
+        //glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
+        //TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
+
+        // Imprimimos na tela os ângulos de Euler que controlam a rotação do
+        // terceiro cubo.
+        TextRendering_ShowEulerAngles(window);
+
+        // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
+        TextRendering_ShowProjection(window);
+
+        // Imprimimos na tela informação sobre o número de quadros renderizados
+        // por segundo (frames per second).
+        TextRendering_ShowFramesPerSecond(window);
+
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
         // seria possível ver artefatos conhecidos como "screen tearing". A
@@ -377,8 +381,7 @@ int main(int argc, char* argv[])
 }
 
 // Função que carrega uma imagem para ser utilizada como textura
-void LoadTextureImage(const char* filename)
-{
+void LoadTextureImage(const char* filename){
     printf("Carregando imagem \"%s\"... ", filename);
 
     // Primeiro fazemos a leitura da imagem do disco
@@ -430,8 +433,7 @@ void LoadTextureImage(const char* filename)
 
 // Função que desenha um objeto armazenado em g_VirtualScene. Veja definição
 // dos objetos na função BuildTrianglesAndAddToVirtualScene().
-void DrawVirtualObject(const char* object_name)
-{
+void DrawVirtualObject(const char* object_name){
     // "Ligamos" o VAO. Informamos que queremos utilizar os atributos de
     // vértices apontados pelo VAO criado pela função BuildTrianglesAndAddToVirtualScene(). Veja
     // comentários detalhados dentro da definição de BuildTrianglesAndAddToVirtualScene().
@@ -465,8 +467,7 @@ void DrawVirtualObject(const char* object_name)
 // utilizados para renderização. Veja slide 217 e 219 do documento
 // "Aula_03_Rendering_Pipeline_Grafico.pdf".
 //
-void LoadShadersFromFiles()
-{
+void LoadShadersFromFiles(){
     // Note que o caminho para os arquivos "shader_vertex.glsl" e
     // "shader_fragment.glsl" estão fixados, sendo que assumimos a existência
     // da seguinte estrutura no sistema de arquivos:
@@ -884,13 +885,10 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id)
     return program_id;
 }
 
-
-
 // Função para debugging: imprime no terminal todas informações de um modelo
 // geométrico carregado de um arquivo ".obj".
 // Veja: https://github.com/syoyo/tinyobjloader/blob/22883def8db9ef1f3ffb9b404318e7dd25fdbb51/loader_example.cc#L98
-void PrintObjModelInfo(ObjModel* model)
-{
+void PrintObjModelInfo(ObjModel* model){
   const tinyobj::attrib_t                & attrib    = model->attrib;
   const std::vector<tinyobj::shape_t>    & shapes    = model->shapes;
   const std::vector<tinyobj::material_t> & materials = model->materials;
