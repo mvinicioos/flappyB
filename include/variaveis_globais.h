@@ -52,3 +52,14 @@ GLuint g_NumLoadedTextures = 0;
 
 // Pilha que guardará as matrizes de modelagem.
 std::stack<glm::mat4>  g_MatrixStack;
+
+//-----------------------------------------------------------------------[PERSONAGEM]
+//Variáveis globais de referência para orientação do personagem principal.
+float personagemCoordX = 0;
+float personagemCoordY = 5;
+float personagemCoordZ = 0;
+//Flags
+int  flagTeclaEspaco   = 0;
+//controladores
+float personagemTempoSaltoInc = 0;
+

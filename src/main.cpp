@@ -52,13 +52,21 @@
 #include "variaveis_globais.h"
 #include "texto.h"
 #include "controle.h"
+#include "colisoes.h"
+#include "personagem.h"
 
 //Constantes do cenário
 #define CENARIO_LIMITE_INFERIOR 0
-#define CENARIO_LIMITE_SUPERIOR 5
+#define CENARIO_LIMITE_SUPERIOR 10
+#define CENARIO_LIMITE_ESQUERDA -10
+#define CENARIO_TAMANHO_LINHAS 5.0
+#define CENARIO_GRAVIDADE 0.07
 
 //Personagem
 #define BUNNY  1
+#define PERSONAGEM_DISTANCIA_SALTO 0.2
+#define PERSONAGEM_TEMPO_SALTO 10
+#define PERSONAGEM_INCREMENTADOR_SALTO 1
 #define PERSONAGEM_TAMANHO_Y 0.25
 #define PERSONAGEM_TAMANHO_X 0.25
 #define PERSONAGEM_TAMANHO_Z 0.25
@@ -238,8 +246,31 @@ int main(int argc, char* argv[]){
     glm::mat4 the_view;
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)){
+        if(flagTeclaEspaco == 0){
+            //Jogador ainda não solicitou um salto
+            //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
+            if(cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, PERSONAGEM_TAMANHO_Y) < personagemCoordY){
+                personagemCoordY -= CENARIO_GRAVIDADE;
+            }else{
+                //COLISÃO COM O CHÃO
+                
+            }
+        }else{
+            //O jogador solicitou um salto
+            //O personagem vai percorrer uma distancia de 'PERSONAGEM_DISTANCIA_SALTO'
+            //por iteração em um total de 'PERSONAGEM_TEMPO_SALTO' iterações
+            if(personagemTempoSaltoInc < PERSONAGEM_TEMPO_SALTO){
+                personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;                    
+                
+                //Verifica se não ultrapssou o limite superior do cenário
+                if(cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, PERSONAGEM_TAMANHO_Y) > personagemCoordY){
+                    personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);                       
+                }
+            }else{
+                flagTeclaEspaco = 0;
+            }
+        }
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -326,7 +357,7 @@ int main(int argc, char* argv[]){
 
         // Desenhamos o modelo do coelho
         model = Matrix_Scale(PERSONAGEM_TAMANHO_X, PERSONAGEM_TAMANHO_Y, PERSONAGEM_TAMANHO_Z)
-                *Matrix_Translate(1.0f,0.0f,0.0f);
+                *Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ);
              
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, BUNNY);
