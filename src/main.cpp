@@ -54,25 +54,53 @@
 #include "controle.h"
 #include "colisoes.h"
 #include "personagem.h"
+#include "obstaculos.h"
 
 
 //Constantes do cenário
 #define CENARIO_LIMITE_INFERIOR 0
-#define CENARIO_LIMITE_SUPERIOR 10
-#define CENARIO_LIMITE_ESQUERDA -10
+#define CENARIO_LIMITE_SUPERIOR 5
+#define CENARIO_LIMITE_DIREITA 8
+
+#define CENARIO_LIMITE_ESQUERDA -3
 #define CENARIO_TAMANHO_LINHAS 5.0
-#define CENARIO_GRAVIDADE 0.07
+#define CENARIO_GRAVIDADE 0.2
+#define CENARIO_PAREDE_X 20.0f
+#define CENARIO_PAREDE_Y 20.0f
+#define CENARIO_PAREDE_Z 0.0f
+#define CENARIO_CHAO_X 20.0f
+#define CENARIO_CHAO_Y 6.0f
+#define CENARIO_CHAO_Z 3.0f
+
+
+
 
 //Personagem
-#define BUNNY  1
-#define PERSONAGEM_DISTANCIA_SALTO 0.2
+#define SPHERE 0
+#define PERSONAGEM  1
+#define VACA  2
+#define PAREDE  3
+#define OBSTACULO  4
+#define CHAO  5
+#define PLANE 6
+
+#define PERSONAGEM_DISTANCIA_SALTO 0.3
 #define PERSONAGEM_TEMPO_SALTO 10
 #define PERSONAGEM_INCREMENTADOR_SALTO 1
 #define PERSONAGEM_TAMANHO_Y 0.25
 #define PERSONAGEM_TAMANHO_X 0.25
 #define PERSONAGEM_TAMANHO_Z 0.25
 
-//Obstáculos
+//Constantes dos objetos
+#define OBSTACULO_TAMANHO_Y 1.75f
+#define OBSTACULO_TAMANHO_X 0.5f
+#define OBSTACULO_TAMANHO_Z 3.0f
+#define OBSTACULO_DISTANCIA 0.05f   //Distância que anda por iteração
+
+
+
+
+
 
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
@@ -95,7 +123,7 @@ struct ObjModel{
 
         if (!ret)
             throw std::runtime_error("Erro ao carregar modelo.");
-        
+
         printf("OK.\n");
     }
 };
@@ -118,6 +146,13 @@ GLuint LoadShader_Fragment(const char* filename); // Carrega um fragment shader
 void LoadShader(const char* filename, GLuint shader_id); // Função utilizada pelas duas acima
 GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id); // Cria um programa de GPU
 void PrintObjModelInfo(ObjModel*); // Função para debugging
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
+
+
+
+
+
+
 
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
@@ -146,6 +181,16 @@ std::map<std::string, SceneObject> g_VirtualScene;
 
 
 int main(int argc, char* argv[]){
+    float obstaculoAMovimentaX = 10.0;
+
+    //OBSTÁCULOS
+    int obstaculoVariacaoSup = 0;
+    int obstaculoVariacaoInf = 0;
+
+    //Jogador
+    int pontuacao = 0;
+    string pontuacaoBuffer;
+
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
     // sistema operacional, onde poderemos renderizar com OpenGL.
     int success = glfwInit();
@@ -215,14 +260,19 @@ int main(int argc, char* argv[]){
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
-    LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
-
+    LoadTextureImage("../../data/coelho.jpg"); // TextureImage0
+    LoadTextureImage("../../data/grama.jpg");      // TextureImage1
     
+    LoadTextureImage("../../data/parede.jpg"); // TextureImage4
+    
+
     ObjModel bunnymodel("../../data/bunny.obj");
     ComputeNormals(&bunnymodel);
     BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
+    //ObjModel planemodel("../../data/plane.obj");
+    //ComputeNormals(&planemodel);
+    //BuildTrianglesAndAddToVirtualScene(&planemodel);
 
     if ( argc > 1 )
     {
@@ -260,23 +310,32 @@ int main(int argc, char* argv[]){
                 personagemCoordY -= CENARIO_GRAVIDADE;
             }else{
                 //COLISÃO COM O CHÃO
-                
+
             }
         }else{
             //O jogador solicitou um salto
             //O personagem vai percorrer uma distancia de 'PERSONAGEM_DISTANCIA_SALTO'
             //por iteração em um total de 'PERSONAGEM_TEMPO_SALTO' iterações
             if(personagemTempoSaltoInc < PERSONAGEM_TEMPO_SALTO){
-                personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;                    
-                
+                personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;
                 //Verifica se não ultrapssou o limite superior do cenário
-                if(cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, PERSONAGEM_TAMANHO_Y) > personagemCoordY){
-                    personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);                       
+                if(4*cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, PERSONAGEM_TAMANHO_Y) > personagemCoordY){
+                   personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);
                 }
             }else{
                 flagTeclaEspaco = 0;
             }
         }
+
+        //----------Obstaculos
+        //Limites do cenário
+        if(CENARIO_LIMITE_ESQUERDA < obstaculoAMovimentaX){
+            obstaculoAMovimentaX -= OBSTACULO_DISTANCIA;
+        }else{
+            obstaculoAMovimentaX = CENARIO_LIMITE_DIREITA;
+            obstaculosVariacao(&obstaculoVariacaoInf, &obstaculoVariacaoSup, 3);
+        }
+        //----------------------
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -285,7 +344,7 @@ int main(int argc, char* argv[]){
         // Conversaremos sobre sistemas de cores nas aulas de Modelos de Iluminação.
         //
         //           R     G     B     A
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
 
         // "Pintamos" todos os pixels do framebuffer com a cor definida acima,
         // e também resetamos todos os pixels do Z-buffer (depth buffer).
@@ -295,6 +354,8 @@ int main(int argc, char* argv[]){
         // os shaders de vértice e fragmentos).
         glUseProgram(program_id);
 
+
+
         // Computamos a posição da câmera utilizando coordenadas esféricas.  As
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
@@ -303,11 +364,10 @@ int main(int argc, char* argv[]){
         float y = r*sin(g_CameraPhi);
         float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
         float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
-
-        // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
+// Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 165-175 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
         glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        glm::vec4 camera_lookat_l    = glm::vec4(personagemCoordX,personagemCoordY/8 ,personagemCoordZ,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
         glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
@@ -355,45 +415,61 @@ int main(int argc, char* argv[]){
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-       
-        
-        
 
-        
+
+
+
+
 
         // Desenhamos o modelo do coelho
         model = Matrix_Scale(PERSONAGEM_TAMANHO_X, PERSONAGEM_TAMANHO_Y, PERSONAGEM_TAMANHO_Z)
-                *Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ);
-             
+                *Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ)
+                *Matrix_Rotate_Y(3.14);
+
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, BUNNY);
+        glUniform1i(object_id_uniform, PERSONAGEM);
         DrawVirtualObject("bunny");
 
-        
-        
+
         // "Ligamos" o VAO. Informamos que queremos utilizar os atributos de
         // vértices apontados pelo VAO criado pela função BuildTriangles(). Veja
         // comentários detalhados dentro da definição de BuildTriangles().
         glBindVertexArray(vertex_array_object_id);
 
-        for (int i = 1; i <= 1; ++i){
+        for (int i = 1; i <= 4; ++i){
 
             if ( i == 1 ){
                 //Chão
-                model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR, 0.0f) // TERCEIRO translação
-                      * Matrix_Scale(20.0f, 0.0f, 3.0f); // PRIMEIRO escala
+                model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR - (CENARIO_CHAO_Y/2), 0.0f) // TERCEIRO translação
+                      * Matrix_Scale(CENARIO_CHAO_X, CENARIO_CHAO_Y, CENARIO_CHAO_Z); // PRIMEIRO escala
+
+
+            }else if ( i == 2 ){
+                //Obstáculo inferior
+                model =   Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoInf), 0.0f) // QUARTO translação
+                        * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoInf, OBSTACULO_TAMANHO_Z);
+
+            }else if(i==3){
+                //Obstáculo superior
+                model = Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoSup), 0.0f) // TERCEIRO translação
+                      * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoSup, OBSTACULO_TAMANHO_Z); // PRIMEIRO escala
+
+
+            }else if(i == 4){
+               //parede
+                model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR, -(CENARIO_CHAO_Z/2)) // TERCEIRO translação
+                      * Matrix_Scale(CENARIO_PAREDE_X, CENARIO_PAREDE_Y, CENARIO_PAREDE_Z); // PRIMEIRO escala     
+
             }
 
             // Enviamos a matriz "model" para a placa de vídeo (GPU). Veja o
             // arquivo "shader_vertex.glsl", onde esta é efetivamente
             // aplicada em todos os pontos.
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-
             // Informamos para a placa de vídeo (GPU) que a variável booleana
             // "render_as_black" deve ser colocada como "false". Veja o arquivo
             // "shader_vertex.glsl".
-            glUniform1i(object_id_uniform, false);
-
+            glUniform1i(object_id_uniform, PAREDE);
             // Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
             // VAO como triângulos, formando as faces do cubo. Esta
             // renderização irá executar o Vertex Shader definido no arquivo
@@ -410,18 +486,13 @@ int main(int argc, char* argv[]){
                 GL_UNSIGNED_INT,
                 (void*)g_VirtualScene["cube_faces"].first_index
             );
-
-
-
             // Pedimos para OpenGL desenhar linhas com largura de 4 pixels.
             glLineWidth(CENARIO_TAMANHO_LINHAS);
-
-            
             // Informamos para a placa de vídeo (GPU) que a variável booleana
             // "render_as_black" deve ser colocada como "true". Veja o arquivo
             // "shader_vertex.glsl".
-            glUniform1i(object_id_uniform, true);
 
+            glUniform1i(object_id_uniform, PAREDE);
             // Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
             // VAO como linhas, formando as arestas pretas do cubo. Veja a
             // definição de g_VirtualScene["cube_edges"] dentro da função
@@ -435,9 +506,6 @@ int main(int argc, char* argv[]){
             );
 
         }
-
-
-
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
         // seria possível ver artefatos conhecidos como "screen tearing". A
@@ -1166,7 +1234,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id){
         fprintf(stderr, "%s", output.c_str());
     }
 
-    // Os "Shader Objects" podem ser marcados para deleção após serem linkados 
+    // Os "Shader Objects" podem ser marcados para deleção após serem linkados
     glDeleteShader(vertex_shader_id);
     glDeleteShader(fragment_shader_id);
 
@@ -1341,6 +1409,14 @@ void PrintObjModelInfo(ObjModel* model){
     printf("\n");
   }
 }
+
+
+
+
+
+
+
+
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :

@@ -12,6 +12,13 @@ bool g_LeftMouseButtonPressed = false;
 bool g_RightMouseButtonPressed = false; // Análogo para botão direito do mouse
 bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mouse
 
+//teclas de controle
+bool g_WKeyPressed = false;
+bool g_AKeyPressed = false;
+bool g_SKeyPressed = false;
+bool g_DKeyPressed = false;
+
+
 // Variáveis que definem a câmera em coordenadas esféricas, controladas pelo
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
@@ -19,6 +26,18 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
 float g_CameraPhi = 0.0f;   // Ângulo em relação ao eixo Y
 float g_CameraDistance = 3.5f; // Distância da câmera para a origem
+
+float freeCam = 0; //Controle free câmera
+bool freeCam2 = false;
+
+// para implementar a free cam, utilizamos como global:
+glm::vec4 camera_position_c  = glm::vec4(8.0f,1.5f,0.0f,1.0f);
+glm::vec4 camera_view_vector = glm::vec4(-250.0f,0.0f,0.0f,1.0f) - camera_position_c;
+glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+glm::vec4 vectorNormalized = glm::normalize(crossproduct(camera_view_vector, camera_up_vector));
+
+// para implementar olhada ao redor do mouse
+bool firstMouse = true;
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -64,3 +83,12 @@ int  flagTeclaEspaco   = 0;
 float personagemTempoSaltoInc = 0;
 //-----------------------------------------------------------------------[OBSTACULOS]
 GLuint vertex_array_object_id;
+//Primeiro objeto
+float obstaculosAcoordX = 5;
+float obstaculosAcoordY = 0;
+float obstaculosAcoordZ = 0;
+
+//Segundo Objeto
+float obstaculosBcoordX = 10;
+float obstaculosBcoordY = 0;
+float obstaculosBcoordZ = 0;

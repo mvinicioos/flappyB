@@ -20,8 +20,11 @@ uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
 #define SPHERE 0
-#define BUNNY  1
-#define PLANE  2
+#define PERSONAGEM  1
+#define VACA  2
+#define PAREDE  3
+#define OBSTACULO  4
+#define CHAO  5
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -32,7 +35,11 @@ uniform vec4 bbox_max;
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
-
+uniform sampler2D TextureImage3;/*
+uniform sampler2D TextureImage4;
+uniform sampler2D TextureImage5;
+uniform sampler2D TextureImage6;
+*/
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
 
@@ -64,25 +71,33 @@ void main()
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
+
+
     // Coordenadas de textura U e V
     float U = 0.0;
     float V = 0.0;
+    vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
+    // Equação de Iluminação
+    float lambert = max(0,dot(n,l));
+
+    // Vetor que define half-vector para Blinn-Phong
+    vec4 hf = normalize(v+l);
+    // spotlight
+    vec4 sp = vec4(0.0, -1.0, 0.0, 0.0);
+    vec4 sp_pos = vec4(0.0, 2.0, 1.0, 1.0);
+    float sp_gap = 3.14159265359/6;
+    vec4 s = normalize(sp_pos - p);
+    // Vetor que define o sentido da reflexão especular ideal.
+    vec4 r = 2 * n * dot(n, s); // PREENCHA AQUI o vetor de reflexão especular ideal
+    // Parâmetros que definem as propriedades espectrais da superfície
+    vec3 Kd; // Refletância difusa
+    vec3 Ks; // Refletância especular
+    vec3 Ka; // Refletância ambiente
+    float q; // Expoente especular para o modelo de iluminação de Phong
+
 
     if ( object_id == SPHERE )
     {
-        // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
-        // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
-        // o slide 139 do documento "Aula_20_e_21_Mapeamento_de_Texturas.pdf".
-        // A esfera que define a projeção deve estar centrada na posição
-        // "bbox_center" definida abaixo.
-
-        // Você deve utilizar:
-        //   função 'length( )' : comprimento Euclidiano de um vetor
-        //   função 'atan( , )' : arcotangente. Veja https://en.wikipedia.org/wiki/Atan2.
-        //   função 'asin( )'   : seno inverso.
-        //   constante M_PI
-        //   variável position_model
-
         vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
         vec4 p=position_model-bbox_center;
 
@@ -96,12 +111,13 @@ void main()
 
         U = (theta+M_PI)/(2*M_PI);
         V = (phi+M_PI_2)/M_PI;
+        color = Kd0 * (lambert + 0.01);
+        vec3 Kd1 = texture(TextureImage3, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01)+Kd1 * (1-pow(lambert,0.2));
     }
-    else if ( object_id == BUNNY )
+    else if ( object_id == PERSONAGEM )
     {
-        // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
-        // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
-        // o slide 106 do documento "Aula_20_e_21_Mapeamento_de_Texturas.pdf".
+
         float minx = bbox_min.x;
         float maxx = bbox_max.x;
 
@@ -111,32 +127,88 @@ void main()
         float minz = bbox_min.z;
         float maxz = bbox_max.z;
 
-        // Utilize as variáveis min*/max* definidas acima para normalizar as
-        // coordenadas de textura U e V dentro do intervalo [0,1]. Veja 149
-        // do documento "Aula_20_e_21_Mapeamento_de_Texturas.pdf".
         U=(position_model.x-minx)/(maxx-minx);
         V=(position_model.y-miny)/(maxy-miny);
-
-    }
-    else if ( object_id == PLANE )
+        Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01);
+}
+    else if ( object_id == VACA )
     {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
+        Kd = vec3(0.08f,0.4f,0.8f);
+        Ks = vec3(0.8f,0.8f,0.8f);
+        Ka = Kd/2.0f;
+        q = 32.0;
+
+        vec3 I = vec3(1.0,1.0,1.0); // PREENCH AQUI o espectro da fonte de luz
+        vec3 Ia = vec3(0.3,0.3,0.3); // PREENCHA AQUI o espectro da luz ambiente
+        vec3 lambert_diffuse_term = Kd * I * max(0, dot(n, l)); // PREENCHA AQUI o termo difuso de Lambert
+        vec3 ambient_term = Ka * Ia; // PREENCHA AQUI o termo ambiente
+        vec3 phong_specular_term  = Ks * I * pow(max(0, dot(n,hf)), q);
+        color = lambert_diffuse_term + ambient_term + phong_specular_term;
     }
 
-    // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-    vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
+    else if ( object_id == PAREDE )
+    {
+        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+        vec4 p=position_model-bbox_center;
 
-    // Equação de Iluminação
-    float lambert = max(0,dot(n,l));
+        float px=position_model.x;
+        float py=position_model.y;
+        float pz=position_model.z;
 
-    color = Kd0 * (lambert + 0.01);
+        float ro=length(p);
+        float theta=atan(px, pz);
+        float phi=asin(py/ro);
+
+        U = (theta+M_PI)/(2*M_PI);
+        V = (phi+M_PI_2)/M_PI;
+        Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01);
+        vec3 Kd1 = texture(TextureImage2, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01)+Kd1 * (1-pow(lambert,0.2));
+    }
+    else if ( object_id == OBSTACULO )
+    {
+        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+        vec4 p=position_model-bbox_center;
+
+        float px=position_model.x;
+        float py=position_model.y;
+        float pz=position_model.z;
+
+        float ro=length(p);
+        float theta=atan(px, pz);
+        float phi=asin(py/ro);
+
+        U = (theta+M_PI)/(2*M_PI);
+        V = (phi+M_PI_2)/M_PI;
+        Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01);
+        vec3 Kd1 = texture(TextureImage2, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01)+Kd1 * (1-pow(lambert,0.2));
+    }
+
+    else if ( object_id == CHAO )
+    {
+        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+        vec4 p=position_model-bbox_center;
+
+        float px=position_model.x;
+        float py=position_model.y;
+        float pz=position_model.z;
+
+        float ro=length(p);
+        float theta=atan(px, pz);
+        float phi=asin(py/ro);
+
+        U = (theta+M_PI)/(2*M_PI);
+        V = (phi+M_PI_2)/M_PI;
+        Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01);
+        vec3 Kd1 = texture(TextureImage2, vec2(U,V)).rgb;
+        color = Kd0 * (lambert + 0.01)+Kd1 * (1-pow(lambert,0.2));
+    }
 
 
-
-
-    // Cor final com correção gamma, considerando monitor sRGB.
-    // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
     color = pow(color, vec3(1.0,1.0,1.0)/2.2);
 }
