@@ -29,6 +29,8 @@ float g_CameraDistance = 3.5f; // Distância da câmera para a origem
 
 float freeCam = 0; //Controle free câmera
 bool freeCam2 = false;
+bool g_ENTERKeyPresseed = false;
+bool g_ENTERKeyPresseed2 = false;
 
 // para implementar a free cam, utilizamos como global:
 glm::vec4 camera_position_c  = glm::vec4(8.0f,1.5f,0.0f,1.0f);

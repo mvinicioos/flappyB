@@ -1,5 +1,13 @@
 
 
+//Personagem
+#define SPHERE 0
+#define PERSONAGEM  1
+#define VACA  2
+#define PAREDE  3
+#define OBSTACULO  4
+#define CHAO  5
+#define PLANE 6
 //Funções de callback
 // Definição da função que será chamada sempre que a janela do sistema
 // operacional for redimensionada, por consequência alterando o tamanho do
@@ -205,13 +213,101 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
     if(key == GLFW_KEY_ENTER){
         
-        if(menuSeletor == 0){
-            menuSeletor = 0.1;
-            menuSelPersonagem = 1;
-        }else{
-            menu = 0;
+        g_ENTERKeyPresseed2=g_ENTERKeyPresseed;
+        g_ENTERKeyPresseed=true;
+
+        if(g_ENTERKeyPresseed=true && g_ENTERKeyPresseed2==false && menuSelPersonagem == 0){
+            if(menuSeletor == 0){
+                menuSeletor = 0.1;
+                menuSelPersonagem = 1;
+            }else{
+                menu = 0;
+            }
+        }else if(g_ENTERKeyPresseed=true && g_ENTERKeyPresseed2==false){
+            if(menuSeletor == 0.1){
+                menu = 0;
+                personagemSeletor = PERSONAGEM;
+            }else{
+                menu = 0;
+                personagemSeletor = VACA;
+            }
         }
     }
+
+
+
+        float cameraSpeed = 0.085f; // velocidade para se movimentar a câmera livre
+    if(freeCam){
+        if(freeCam2)
+            vectorNormalized = glm::normalize(crossproduct(camera_view_vector, camera_up_vector));
+        if (key == GLFW_KEY_W){
+            if (freeCam)
+            {
+                if(freeCam2)
+                camera_position_c += cameraSpeed * 6 * camera_view_vector;
+                else
+                    camera_position_c += cameraSpeed * camera_view_vector;
+            }
+            else
+                g_WKeyPressed=true;
+        }
+        if (key == GLFW_KEY_W && action == GLFW_RELEASE){
+                g_WKeyPressed=false;
+        }
+        if (key == GLFW_KEY_A){
+            if (freeCam)
+            {
+            camera_position_c -= vectorNormalized * (cameraSpeed*6);
+            camera_position_c.w = 1.0f;
+            }
+            else
+                g_AKeyPressed=true;
+        }
+        if (key == GLFW_KEY_A && action == GLFW_RELEASE){
+            g_AKeyPressed=false;
+        }
+        if (key == GLFW_KEY_S){
+            if(freeCam)
+            {
+                if(freeCam2)
+                camera_position_c -= cameraSpeed * 6 * camera_view_vector;
+                else
+                    camera_position_c -= cameraSpeed * camera_view_vector;
+            }
+
+            else
+                g_SKeyPressed=true;
+        }
+        if (key == GLFW_KEY_S && action == GLFW_RELEASE){
+            g_SKeyPressed=false;
+        }
+        if (key == GLFW_KEY_D){
+            if(freeCam)
+            {
+                camera_position_c += vectorNormalized * (cameraSpeed*6);
+                camera_position_c.w = 1.0f;
+            }
+            else
+                g_DKeyPressed=true;
+        }
+        if (key == GLFW_KEY_D && action == GLFW_RELEASE){
+            g_DKeyPressed=false;
+        }
+    }
+    // Se o usuário apertar a tecla X, muda o modo para free camera
+    if (key == GLFW_KEY_X && action == GLFW_PRESS)
+    {
+        if (freeCam == 0)
+            freeCam = 1;
+        else
+            freeCam = 0;
+    }
+
+    // Se o usuário pressionar a tecla ESC, fechamos a janela.
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+
+
     
 }
 
