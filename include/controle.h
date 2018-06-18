@@ -190,6 +190,29 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         flagTeclaEspaco = 1;
         personagemTempoSaltoInc = 0;
     }
+
+    if(key == GLFW_KEY_UP && action == GLFW_PRESS){
+        if(menuSeletor < 0.1f){
+            menuSeletor += 0.1f;
+        }
+    }
+
+    if(key == GLFW_KEY_DOWN && action == GLFW_PRESS){
+        if(menuSeletor > -0.1f){
+            menuSeletor -= 0.1f;
+        }
+    }
+
+    if(key == GLFW_KEY_ENTER){
+        
+        if(menuSeletor == 0){
+            menuSeletor = 0.1;
+            menuSelPersonagem = 1;
+        }else{
+            menu = 0;
+        }
+    }
+    
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal

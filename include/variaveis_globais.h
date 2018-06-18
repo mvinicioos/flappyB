@@ -72,6 +72,9 @@ GLuint g_NumLoadedTextures = 0;
 // Pilha que guardará as matrizes de modelagem.
 std::stack<glm::mat4>  g_MatrixStack;
 
+int menu = 1;
+int menuSelPersonagem = 0;
+float menuSeletor = 0.1;
 //-----------------------------------------------------------------------[PERSONAGEM]
 //Variáveis globais de referência para orientação do personagem principal.
 float personagemCoordX = 0;
@@ -81,6 +84,7 @@ float personagemCoordZ = 0;
 int  flagTeclaEspaco   = 0;
 //controladores
 float personagemTempoSaltoInc = 0;
+int personagemSeletor = 0;
 //-----------------------------------------------------------------------[OBSTACULOS]
 GLuint vertex_array_object_id;
 //Primeiro objeto

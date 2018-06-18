@@ -18,7 +18,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-
+#include <stdio.h>
 // Headers abaixo são específicos de C++
 #include <map>
 #include <stack>
@@ -260,15 +260,32 @@ int main(int argc, char* argv[]){
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/coelho.jpg"); // TextureImage0
-    LoadTextureImage("../../data/grama.jpg");      // TextureImage1
+    personagemSeletor = VACA;
     
+    //Seleção de personagem
+    if(personagemSeletor == VACA){
+        LoadTextureImage("../../data/coelho.jpg"); // TextureImage0
+    }else{
+        LoadTextureImage("../../data/coelho.jpg"); // TextureImage0    
+    }
+
+
+    
+    
+    LoadTextureImage("../../data/grama.jpg");      // TextureImage1
     LoadTextureImage("../../data/parede.jpg"); // TextureImage4
     
+    //Seleção de personagem
+    if(personagemSeletor == VACA){
+        ObjModel vacamodel("../../data/cow.obj");
+        ComputeNormals(&vacamodel);
+        BuildTrianglesAndAddToVirtualScene(&vacamodel);
+    }else{
+        ObjModel bunnymodel("../../data/bunny.obj");
+        ComputeNormals(&bunnymodel);
+        BuildTrianglesAndAddToVirtualScene(&bunnymodel);
+    }
 
-    ObjModel bunnymodel("../../data/bunny.obj");
-    ComputeNormals(&bunnymodel);
-    BuildTrianglesAndAddToVirtualScene(&bunnymodel);
 
     //ObjModel planemodel("../../data/plane.obj");
     //ComputeNormals(&planemodel);
@@ -302,40 +319,8 @@ int main(int argc, char* argv[]){
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window)){
 
-
-        if(flagTeclaEspaco == 0){
-            //Jogador ainda não solicitou um salto
-            //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
-            if(cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, PERSONAGEM_TAMANHO_Y) + 1 < personagemCoordY){
-                personagemCoordY -= CENARIO_GRAVIDADE;
-            }else{
-                //COLISÃO COM O CHÃO
-
-            }
-        }else{
-            //O jogador solicitou um salto
-            //O personagem vai percorrer uma distancia de 'PERSONAGEM_DISTANCIA_SALTO'
-            //por iteração em um total de 'PERSONAGEM_TEMPO_SALTO' iterações
-            if(personagemTempoSaltoInc < PERSONAGEM_TEMPO_SALTO){
-                personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;
-                //Verifica se não ultrapssou o limite superior do cenário
-                if(4*cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, PERSONAGEM_TAMANHO_Y) > personagemCoordY){
-                   personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);
-                }
-            }else{
-                flagTeclaEspaco = 0;
-            }
-        }
-
-        //----------Obstaculos
-        //Limites do cenário
-        if(CENARIO_LIMITE_ESQUERDA < obstaculoAMovimentaX){
-            obstaculoAMovimentaX -= OBSTACULO_DISTANCIA;
-        }else{
-            obstaculoAMovimentaX = CENARIO_LIMITE_DIREITA;
-            obstaculosVariacao(&obstaculoVariacaoInf, &obstaculoVariacaoSup, 3);
-        }
-        //----------------------
+        
+        
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -355,156 +340,225 @@ int main(int argc, char* argv[]){
         glUseProgram(program_id);
 
 
+        if(menu == 1){
+            TextRendering_Init();
+           fflush(stdin);
+           if(menuSelPersonagem == 0){
+                TextRendering_PrintString(window, "> ", -0.2f,menuSeletor,1.5f);            
+                TextRendering_PrintString(window, "NOVO JOGO", -0.15f,0.1f,1.5f);
+                TextRendering_PrintString(window, "PERSONAGENS", -0.15f,0.0f,1.5f);
+                TextRendering_PrintString(window, "CREDITOS", -0.15f,-0.1f,1.5f);
 
-        // Computamos a posição da câmera utilizando coordenadas esféricas.  As
-        // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
-        // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
-        // e ScrollCallback().
-        float r = g_CameraDistance;
-        float y = r*sin(g_CameraPhi);
-        float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
-        float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
-// Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
-        // Veja slides 165-175 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
-        glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l    = glm::vec4(personagemCoordX,personagemCoordY/8 ,personagemCoordZ,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+            }else{
+                TextRendering_PrintString(window, "> ", -0.2f,menuSeletor,1.5f);            
+                TextRendering_PrintString(window, "COELHO", -0.15f,0.1f,1.5f);
+                TextRendering_PrintString(window, "VACA", -0.15f,0.0f,1.5f);
+                std::cout << "AQUI" << endl;
+                    
+            }
+            fflush(stdin);
+            std::cout << menu << " " << menuSeletor << " " << menuSelPersonagem << endl;            
+        }else{
+        
 
-        // Computamos a matriz "View" utilizando os parâmetros da câmera para
-        // definir o sistema de coordenadas da câmera.  Veja slide 179 do
-        // documento "Aula_08_Sistemas_de_Coordenadas.pdf".
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+            if(flagTeclaEspaco == 0){
+                //Jogador ainda não solicitou um salto
+                //Garante a queda constante do personagem até o CENARIO_LIMITE_INFERIOR ocorrer
+                if(cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, PERSONAGEM_TAMANHO_Y) + 1 < personagemCoordY){
+                    personagemCoordY -= CENARIO_GRAVIDADE;
+                }else{
+                    //COLISÃO COM O CHÃO
 
-        // Agora computamos a matriz de Projeção.
-        glm::mat4 projection;
-
-        // Note que, no sistema de coordenadas da câmera, os planos near e far
-        // estão no sentido negativo! Veja slides 191-194 do documento
-        // "Aula_09_Projecoes.pdf".
-        float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane  = -10.0f; // Posição do "far plane"
-
-        if (g_UsePerspectiveProjection)
-        {
-            // Projeção Perspectiva.
-            // Para definição do field of view (FOV), veja slide 228 do
-            // documento "Aula_09_Projecoes.pdf".
-            float field_of_view = 3.141592 / 3.0f;
-            projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-        }
-        else
-        {
-            // Projeção Ortográfica.
-            // Para definição dos valores l, r, b, t ("left", "right", "bottom", "top"),
-            // veja slide 243 do documento "Aula_09_Projecoes.pdf".
-            // Para simular um "zoom" ortográfico, computamos o valor de "t"
-            // utilizando a variável g_CameraDistance.
-            float t = 1.5f*g_CameraDistance/2.5f;
-            float b = -t;
-            float r = t*g_ScreenRatio;
-            float l = -r;
-            projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
-        }
-
-        glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
-
-        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
-        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
-        // efetivamente aplicadas em todos os pontos.
-        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
-        glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
-
-
-
-
-
-
-
-        // Desenhamos o modelo do coelho
-        model = Matrix_Scale(PERSONAGEM_TAMANHO_X, PERSONAGEM_TAMANHO_Y, PERSONAGEM_TAMANHO_Z)
-                *Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ)
-                *Matrix_Rotate_Y(3.14);
-
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PERSONAGEM);
-        DrawVirtualObject("bunny");
-
-
-        // "Ligamos" o VAO. Informamos que queremos utilizar os atributos de
-        // vértices apontados pelo VAO criado pela função BuildTriangles(). Veja
-        // comentários detalhados dentro da definição de BuildTriangles().
-        glBindVertexArray(vertex_array_object_id);
-
-        for (int i = 1; i <= 4; ++i){
-
-            if ( i == 1 ){
-                //Chão
-                model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR - (CENARIO_CHAO_Y/2), 0.0f) // TERCEIRO translação
-                      * Matrix_Scale(CENARIO_CHAO_X, CENARIO_CHAO_Y, CENARIO_CHAO_Z); // PRIMEIRO escala
-
-
-            }else if ( i == 2 ){
-                //Obstáculo inferior
-                model =   Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoInf), 0.0f) // QUARTO translação
-                        * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoInf, OBSTACULO_TAMANHO_Z);
-
-            }else if(i==3){
-                //Obstáculo superior
-                model = Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoSup), 0.0f) // TERCEIRO translação
-                      * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoSup, OBSTACULO_TAMANHO_Z); // PRIMEIRO escala
-
-
-            }else if(i == 4){
-               //parede
-                model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR, -(CENARIO_CHAO_Z/2)) // TERCEIRO translação
-                      * Matrix_Scale(CENARIO_PAREDE_X, CENARIO_PAREDE_Y, CENARIO_PAREDE_Z); // PRIMEIRO escala     
-
+                }
+            }else{
+                //O jogador solicitou um salto
+                //O personagem vai percorrer uma distancia de 'PERSONAGEM_DISTANCIA_SALTO'
+                //por iteração em um total de 'PERSONAGEM_TEMPO_SALTO' iterações
+                if(personagemTempoSaltoInc < PERSONAGEM_TEMPO_SALTO){
+                    personagemTempoSaltoInc += PERSONAGEM_INCREMENTADOR_SALTO;
+                    //Verifica se não ultrapssou o limite superior do cenário
+                    if(4*cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, PERSONAGEM_TAMANHO_Y) > personagemCoordY){
+                    personagemCoordY = personagemDeslococamento(personagemCoordY, PERSONAGEM_DISTANCIA_SALTO);
+                    }
+                }else{
+                    flagTeclaEspaco = 0;
+                }
             }
 
-            // Enviamos a matriz "model" para a placa de vídeo (GPU). Veja o
-            // arquivo "shader_vertex.glsl", onde esta é efetivamente
-            // aplicada em todos os pontos.
-            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            // Informamos para a placa de vídeo (GPU) que a variável booleana
-            // "render_as_black" deve ser colocada como "false". Veja o arquivo
-            // "shader_vertex.glsl".
-            glUniform1i(object_id_uniform, PAREDE);
-            // Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
-            // VAO como triângulos, formando as faces do cubo. Esta
-            // renderização irá executar o Vertex Shader definido no arquivo
-            // "shader_vertex.glsl", e o mesmo irá utilizar as matrizes
-            // "model", "view" e "projection" definidas acima e já enviadas
-            // para a placa de vídeo (GPU).
-            //
-            // Veja a definição de g_VirtualScene["cube_faces"] dentro da
-            // função BuildTriangles(), e veja a documentação da função
-            // glDrawElements() em http://docs.gl/gl3/glDrawElements.
-            glDrawElements(
-                g_VirtualScene["cube_faces"].rendering_mode, // Veja slide 160 do documento "Aula_04_Modelagem_Geometrica_3D.pdf".
-                g_VirtualScene["cube_faces"].num_indices,    //
-                GL_UNSIGNED_INT,
-                (void*)g_VirtualScene["cube_faces"].first_index
-            );
-            // Pedimos para OpenGL desenhar linhas com largura de 4 pixels.
-            glLineWidth(CENARIO_TAMANHO_LINHAS);
-            // Informamos para a placa de vídeo (GPU) que a variável booleana
-            // "render_as_black" deve ser colocada como "true". Veja o arquivo
-            // "shader_vertex.glsl".
+            //----------Obstaculos
+            //Limites do cenário
+            if(CENARIO_LIMITE_ESQUERDA < obstaculoAMovimentaX){
+                obstaculoAMovimentaX -= OBSTACULO_DISTANCIA;
+            }else{
+                obstaculoAMovimentaX = CENARIO_LIMITE_DIREITA;
+                obstaculosVariacao(&obstaculoVariacaoInf, &obstaculoVariacaoSup, 3);
+            }
+            //----------------------
 
-            glUniform1i(object_id_uniform, PAREDE);
-            // Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
-            // VAO como linhas, formando as arestas pretas do cubo. Veja a
-            // definição de g_VirtualScene["cube_edges"] dentro da função
-            // BuildTriangles(), e veja a documentação da função
-            // glDrawElements() em http://docs.gl/gl3/glDrawElements.
-            glDrawElements(
-                g_VirtualScene["cube_edges"].rendering_mode,
-                g_VirtualScene["cube_edges"].num_indices,
-                GL_UNSIGNED_INT,
-                (void*)g_VirtualScene["cube_edges"].first_index
-            );
 
+
+            // Computamos a posição da câmera utilizando coordenadas esféricas.  As
+            // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
+            // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
+            // e ScrollCallback().
+            float r = g_CameraDistance;
+            float y = r*sin(g_CameraPhi);
+            float z = r*cos(g_CameraPhi)*cos(g_CameraTheta);
+            float x = r*cos(g_CameraPhi)*sin(g_CameraTheta);
+    // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
+            // Veja slides 165-175 do documento "Aula_08_Sistemas_de_Coordenadas.pdf".
+            glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
+            glm::vec4 camera_lookat_l    = glm::vec4(personagemCoordX,personagemCoordY/8 ,personagemCoordZ,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+            glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+            glm::vec4 camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+
+            // Computamos a matriz "View" utilizando os parâmetros da câmera para
+            // definir o sistema de coordenadas da câmera.  Veja slide 179 do
+            // documento "Aula_08_Sistemas_de_Coordenadas.pdf".
+            glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+
+            // Agora computamos a matriz de Projeção.
+            glm::mat4 projection;
+
+            // Note que, no sistema de coordenadas da câmera, os planos near e far
+            // estão no sentido negativo! Veja slides 191-194 do documento
+            // "Aula_09_Projecoes.pdf".
+            float nearplane = -0.1f;  // Posição do "near plane"
+            float farplane  = -10.0f; // Posição do "far plane"
+
+            if (g_UsePerspectiveProjection)
+            {
+                // Projeção Perspectiva.
+                // Para definição do field of view (FOV), veja slide 228 do
+                // documento "Aula_09_Projecoes.pdf".
+                float field_of_view = 3.141592 / 3.0f;
+                projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
+            }
+            else
+            {
+                // Projeção Ortográfica.
+                // Para definição dos valores l, r, b, t ("left", "right", "bottom", "top"),
+                // veja slide 243 do documento "Aula_09_Projecoes.pdf".
+                // Para simular um "zoom" ortográfico, computamos o valor de "t"
+                // utilizando a variável g_CameraDistance.
+                float t = 1.5f*g_CameraDistance/2.5f;
+                float b = -t;
+                float r = t*g_ScreenRatio;
+                float l = -r;
+                projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
+            }
+
+            glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
+
+            // Enviamos as matrizes "view" e "projection" para a placa de vídeo
+            // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
+            // efetivamente aplicadas em todos os pontos.
+            glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+            glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+
+            //Seleção de personagem
+            if(personagemSeletor == VACA){
+                
+                model = Matrix_Scale(PERSONAGEM_TAMANHO_X, PERSONAGEM_TAMANHO_Y, PERSONAGEM_TAMANHO_Z)
+                        *Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ);
+
+                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+                glUniform1i(object_id_uniform, PERSONAGEM);
+                DrawVirtualObject("cow");
+            }else{
+                // Desenhamos o modelo do coelho
+                model = Matrix_Scale(PERSONAGEM_TAMANHO_X, PERSONAGEM_TAMANHO_Y, PERSONAGEM_TAMANHO_Z)
+                        *Matrix_Translate(personagemCoordX, personagemCoordY, personagemCoordZ)
+                        *Matrix_Rotate_Y(3.14);
+
+                glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+                glUniform1i(object_id_uniform, PERSONAGEM);
+                DrawVirtualObject("bunny");
+            }
+
+            // "Ligamos" o VAO. Informamos que queremos utilizar os atributos de
+            // vértices apontados pelo VAO criado pela função BuildTriangles(). Veja
+            // comentários detalhados dentro da definição de BuildTriangles().
+            glBindVertexArray(vertex_array_object_id);
+
+            for (int i = 1; i <= 4; ++i){
+
+                if ( i == 1 ){
+                    //Chão
+                    model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR - (CENARIO_CHAO_Y/2), 0.0f) // TERCEIRO translação
+                        * Matrix_Scale(CENARIO_CHAO_X, CENARIO_CHAO_Y, CENARIO_CHAO_Z); // PRIMEIRO escala
+                    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+                    glUniform1i(object_id_uniform, CHAO);
+
+
+                }else if ( i == 2 ){
+                    //Obstáculo inferior
+                    model =   Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoInf(CENARIO_LIMITE_INFERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoInf), 0.0f) // QUARTO translação
+                            * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoInf, OBSTACULO_TAMANHO_Z);
+                    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+                    glUniform1i(object_id_uniform, OBSTACULO);
+
+                }else if(i==3){
+                    //Obstáculo superior
+                    model = Matrix_Translate(obstaculoAMovimentaX, cenarioPosicionaObjetoSup(CENARIO_LIMITE_SUPERIOR, OBSTACULO_TAMANHO_Y  + obstaculoVariacaoSup), 0.0f) // TERCEIRO translação
+                        * Matrix_Scale(OBSTACULO_TAMANHO_X, OBSTACULO_TAMANHO_Y + obstaculoVariacaoSup, OBSTACULO_TAMANHO_Z); // PRIMEIRO escala
+                    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+                    glUniform1i(object_id_uniform, OBSTACULO);
+
+
+                }else if(i == 4){
+                //parede
+                    model = Matrix_Translate(0.0f, CENARIO_LIMITE_INFERIOR, -(CENARIO_CHAO_Z/2)) // TERCEIRO translação
+                        * Matrix_Scale(CENARIO_PAREDE_X, CENARIO_PAREDE_Y, CENARIO_PAREDE_Z); // PRIMEIRO escala
+                    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+                    glUniform1i(object_id_uniform, PAREDE);
+
+                }
+
+                // Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
+                // VAO como triângulos, formando as faces do cubo. Esta
+                // renderização irá executar o Vertex Shader definido no arquivo
+                // "shader_vertex.glsl", e o mesmo irá utilizar as matrizes
+                // "model", "view" e "projection" definidas acima e já enviadas
+                // para a placa de vídeo (GPU).
+                //
+                // Veja a definição de g_VirtualScene["cube_faces"] dentro da
+                // função BuildTriangles(), e veja a documentação da função
+                // glDrawElements() em http://docs.gl/gl3/glDrawElements.
+                glDrawElements(
+                    g_VirtualScene["cube_faces"].rendering_mode, // Veja slide 160 do documento "Aula_04_Modelagem_Geometrica_3D.pdf".
+                    g_VirtualScene["cube_faces"].num_indices,    //
+                    GL_UNSIGNED_INT,
+                    (void*)g_VirtualScene["cube_faces"].first_index
+                );
+                // Pedimos para OpenGL desenhar linhas com largura de 4 pixels.
+                glLineWidth(CENARIO_TAMANHO_LINHAS);
+                // Informamos para a placa de vídeo (GPU) que a variável booleana
+                // "render_as_black" deve ser colocada como "true". Veja o arquivo
+                // "shader_vertex.glsl".
+
+                if(i == 1){
+                    glUniform1i(object_id_uniform, CHAO);
+                    
+                }else if(i == 2 || i == 3){
+                    glUniform1i(object_id_uniform, OBSTACULO);
+                    
+                }else if(i == 4){
+                    
+                    glUniform1i(object_id_uniform, PAREDE);
+                }
+                // Pedimos para a GPU rasterizar os vértices do cubo apontados pelo
+                // VAO como linhas, formando as arestas pretas do cubo. Veja a
+                // definição de g_VirtualScene["cube_edges"] dentro da função
+                // BuildTriangles(), e veja a documentação da função
+                // glDrawElements() em http://docs.gl/gl3/glDrawElements.
+                glDrawElements(
+                    g_VirtualScene["cube_edges"].rendering_mode,
+                    g_VirtualScene["cube_edges"].num_indices,
+                    GL_UNSIGNED_INT,
+                    (void*)g_VirtualScene["cube_edges"].first_index
+                );
+            }
         }
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -527,7 +581,6 @@ int main(int argc, char* argv[]){
     // Fim do programa
     return 0;
 }
-
 // Constrói triângulos para futura renderização
 GLuint BuildTriangles(){
     // Primeiro, definimos os atributos de cada vértice.
